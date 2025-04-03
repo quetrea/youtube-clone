@@ -4,6 +4,7 @@ import { eq, and, or, lt, desc } from "drizzle-orm";
 import { db } from "@/db";
 import { videos } from "@/db/schema";
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
+import { TRPCError } from "@trpc/server";
 
 export const studioRouter = createTRPCRouter({
   getMany: protectedProcedure
@@ -61,5 +62,22 @@ export const studioRouter = createTRPCRouter({
         items,
         nextCursor,
       };
+    }),
+  getOne: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const { id: userId } = ctx.user;
+      const { id } = input;
+
+      const [video] = await db
+        .select()
+        .from(videos)
+        .where(and(eq(videos.id, id), eq(videos.userId, userId)));
+
+      if (!video) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      return video;
     }),
 });

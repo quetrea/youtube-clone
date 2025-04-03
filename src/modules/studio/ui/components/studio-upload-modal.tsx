@@ -8,29 +8,19 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { StudioUploader } from "./studio-uploader";
 import { ResponsiveModal } from "@/components/responsive-dialog";
+import { useRouter } from "next/navigation";
+
 interface UploadModalProps {
   open: boolean;
   action: (open: boolean) => void;
   url: string | null;
 }
 
-export const UploadModal = ({ open, action, url }: UploadModalProps) => {
-  return (
-    <ResponsiveModal title="Upload a video" open={open} onOpenChange={action}>
-      {url ? (
-        <StudioUploader endpoint={url} onSuccess={() => {}} />
-      ) : (
-        <Loader2Icon />
-      )}
-    </ResponsiveModal>
-  );
-};
-
 export const StudioUploadModal = () => {
+  const router = useRouter();
   const utils = trpc.useUtils();
   const create = trpc.videos.create.useMutation({
     onSuccess: () => {
-      toast.success("Succesfully video created");
       utils.studio.getMany.invalidate();
     },
     onError: () => {
@@ -49,9 +39,22 @@ export const StudioUploadModal = () => {
   const action = create.reset;
   const url = create.data?.url ?? "";
 
+  const onSuccess = () => {
+    if (!create.data?.video.id) return;
+
+    create.reset();
+    router.push(`/studio/videos/${create.data.video.id}`);
+  };
+
   return (
     <>
-      <UploadModal open={open} action={action} url={url} />
+      <ResponsiveModal title="Upload a video" open={open} onOpenChange={action}>
+        {url ? (
+          <StudioUploader endpoint={url} onSuccess={onSuccess} />
+        ) : (
+          <Loader2Icon />
+        )}
+      </ResponsiveModal>
 
       <Button
         variant={"secondary"}
