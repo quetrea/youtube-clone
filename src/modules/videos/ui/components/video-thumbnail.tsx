@@ -1,5 +1,6 @@
 import { formatDuration } from "@/lib/utils";
 import Image from "next/image";
+
 import { THUMBNAIL_FALLBACK } from "../../constants";
 
 interface VideoThumbnailProps {

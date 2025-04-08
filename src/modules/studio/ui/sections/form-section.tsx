@@ -47,7 +47,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { videoUpdateSchema } from "@/db/schema";
-import { VideoPlayer } from "@/components/video-player";
+import { VideoPlayer } from "@/modules/videos/ui/components/video-player";
 import Link from "next/link";
 import { snakeCaseToTitle } from "@/lib/utils";
 import Image from "next/image";
@@ -132,9 +132,9 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
     );
   };
 
-  const copyUrl =
-    `${process.env.NEXT_PUBLIC_URL}/videos/${videoId}` ||
-    `http://localhost:3000/videos/${videoId}`;
+  const copyUrl = `${
+    process.env.NEXT_PUBLIC_URL || "http://localhost:3000"
+  }/videos/${videoId}`;
   const [isCopied, setIsCopied] = useState(false);
 
   const handleCopy = async () => {
