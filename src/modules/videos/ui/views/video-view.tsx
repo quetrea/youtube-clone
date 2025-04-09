@@ -13,6 +13,7 @@ export const VideoView = ({ videoId }: VideoViewProps) => {
         <div className="flex-1 min-w-0">
           <VideoSection videoId={videoId} />
         </div>
+        <div className=""> Suggestion</div>
       </div>
     </div>
   );
