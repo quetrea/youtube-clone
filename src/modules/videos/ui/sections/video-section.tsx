@@ -26,7 +26,7 @@ export const VideoSection = ({ videoId }: VideoSectionProps) => {
 
 const VideoSectionSuspense = ({ videoId }: VideoSectionProps) => {
   const [video] = trpc.videos.getOne.useSuspenseQuery({ id: videoId });
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, userId } = useAuth();
 
   const utils = trpc.useUtils();
 
@@ -49,12 +49,25 @@ const VideoSectionSuspense = ({ videoId }: VideoSectionProps) => {
           video.muxStatus !== "ready" && "rounded-b-none"
         )}
       >
-        <VideoPlayer
-          autoPlay
-          onPlay={handlePlay}
-          playbackId={video.muxPlaybackId}
-          thumbnailUrl={video.thumbnailUrl}
-        />
+        {(video.visibility !== "private" || userId === video.user.clerkId) && (
+          <VideoPlayer
+            autoPlay
+            onPlay={handlePlay}
+            playbackId={video.muxPlaybackId}
+            thumbnailUrl={video.thumbnailUrl}
+          />
+        )}
+
+        {video.visibility === "private" && userId !== video.user.clerkId && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/80 text-white p-4 text-center">
+            <div>
+              <h3 className="text-xl font-semibold mb-2">Private Video</h3>
+              <p>
+                This video is private and can only be viewed by the creator.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
       <VideoBanner status={video.muxStatus} />
       <VideoTopRow video={video} />

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { ErrorBoundary } from "react-error-boundary";
 import { z } from "zod";
@@ -94,6 +94,13 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
     resolver: zodResolver(videoUpdateSchema),
     defaultValues: video,
   });
+
+  // Ensure form gets proper reset when video data changes
+  useEffect(() => {
+    if (video) {
+      form.reset(video);
+    }
+  }, [form, video]);
 
   const onSubmit = async (data: z.infer<typeof videoUpdateSchema>) => {
     await updateVideo.mutateAsync(
