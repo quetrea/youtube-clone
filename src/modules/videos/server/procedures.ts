@@ -9,7 +9,7 @@ import {
   videoViews,
 } from "@/db/schema";
 import { TRPCError } from "@trpc/server";
-import { and, eq, getTableColumns, inArray } from "drizzle-orm";
+import { and, eq, getTableColumns, inArray, isNotNull } from "drizzle-orm";
 import {
   baseProcedure,
   createTRPCRouter,
@@ -17,7 +17,6 @@ import {
 } from "@/trpc/init";
 import { mux } from "@/lib/mux";
 import { UTApi } from "uploadthing/server";
-import { PgColumn } from "drizzle-orm/pg-core";
 
 export const videosRouter = createTRPCRouter({
   getOne: baseProcedure
@@ -63,7 +62,7 @@ export const videosRouter = createTRPCRouter({
               subscriptions,
               eq(subscriptions.creatorId, users.id)
             ),
-            viewerSubscribed: isNotFull(viewerSubscriptions.viewerId).mapWith(
+            viewerSubscribed: isNotNull(subscriptions.viewerId).mapWith(
               Boolean
             ),
           },
@@ -258,28 +257,3 @@ export const videosRouter = createTRPCRouter({
     return { video: video, url: upload.url };
   }),
 });
-function isNotFull(
-  viewerId: PgColumn<
-    {
-      name: "viewer_id";
-      tableName: "viewer_subscriptions";
-      dataType: "string";
-      columnType: "PgUUID";
-      data: string;
-      driverParam: string;
-      notNull: true;
-      hasDefault: false;
-      isPrimaryKey: false;
-      isAutoincrement: false;
-      hasRuntimeDefault: false;
-      enumValues: undefined;
-      baseColumn: never;
-      identity: undefined;
-      generated: undefined;
-    },
-    {},
-    {}
-  >
-): any {
-  throw new Error("Function not implemented.");
-}
