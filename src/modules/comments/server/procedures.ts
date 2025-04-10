@@ -8,6 +8,7 @@ import {
 import { db } from "@/db";
 import { commentInsertSchema, comments, users } from "@/db/schema";
 import { and, count, desc, eq, getTableColumns, lt, or } from "drizzle-orm";
+import { TRPCError } from "@trpc/server";
 
 export const commentsRouter = createTRPCRouter({
   remove: protectedProcedure
@@ -24,6 +25,10 @@ export const commentsRouter = createTRPCRouter({
         .delete(comments)
         .where(and(eq(comments.userId, userId), eq(comments.id, commentId)))
         .returning();
+
+      if (!deletedComment) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
 
       return deletedComment;
     }),
