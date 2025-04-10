@@ -37,10 +37,11 @@ export const VideoDescription = ({
         <p
           className={cn(
             "text-sm whitespace-pre-wrap",
+            description === null && "text-muted-foreground italic text-sm",
             !isExpanded && "line-clamp-2"
           )}
         >
-          {description}
+          {description || "This video have no description yet"}
         </p>
         <div className="flex items-center gap-1 mt-4 text-sm font-medium">
           {isExpanded ? (
