@@ -1,5 +1,11 @@
 import Link from "next/link";
-import { MessageSquareIcon, MoreVerticalIcon, TrashIcon } from "lucide-react";
+import {
+  MessageSquareIcon,
+  MoreVerticalIcon,
+  ThumbsDownIcon,
+  ThumbsUpIcon,
+  TrashIcon,
+} from "lucide-react";
 import { CommentsGetManyOutput } from "../../types";
 import { UserAvatar } from "@/components/user-avatar";
 import { formatDistanceToNow } from "date-fns";
@@ -72,7 +78,29 @@ export const CommentItem = ({ comment }: CommentItemProps) => {
             </div>
           </Link>
           <p className="text-sm ">{comment.value}</p>
-          {/* TODO: Reactions */}
+
+          <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center ">
+              <Button
+                disabled={false}
+                className="size-8"
+                size={"icon"}
+                variant={"ghost"}
+                onClick={() => {}}
+              >
+                <ThumbsUpIcon className={cn("")} />
+              </Button>
+              <Button
+                disabled={false}
+                className="size-8"
+                size={"icon"}
+                variant={"ghost"}
+                onClick={() => {}}
+              >
+                <ThumbsDownIcon className={cn("")} />
+              </Button>
+            </div>
+          </div>
         </div>
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
