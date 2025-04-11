@@ -7,6 +7,7 @@ import { createTRPCRouter } from "../init";
 import { subscriptionsRouter } from "@/modules/subscriptions/server/procedures";
 import { videoReactionsRouter } from "@/modules/video-reactions/server/procedures";
 import { commentsRouter } from "@/modules/comments/server/procedures";
+import { commentReactionsRouter } from "@/modules/comment-reactions/server/procedures";
 
 export const appRouter = createTRPCRouter({
   studio: studioRouter,
@@ -16,6 +17,7 @@ export const appRouter = createTRPCRouter({
   videoReactions: videoReactionsRouter,
   subscriptions: subscriptionsRouter,
   comments: commentsRouter,
+  commentReactions: commentReactionsRouter,
 });
 
 // export type definition of API
