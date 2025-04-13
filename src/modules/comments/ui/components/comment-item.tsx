@@ -2,7 +2,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 import {
+  ChevronDownIcon,
+  ChevronUpIcon,
   MessageSquareIcon,
   MoreVerticalIcon,
   ThumbsDownIcon,
@@ -26,10 +29,11 @@ import {
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format } from "date-fns";
 import { trpc } from "@/trpc/client";
 import { useAuth, useClerk } from "@clerk/nextjs";
 import { CommentsGetManyOutput } from "../../types";
+import { CommentReplies } from "./comment-replies";
 
 interface CommentItemProps {
   comment: CommentsGetManyOutput["items"][number];
@@ -44,7 +48,9 @@ export const CommentItem = ({
   const { userId } = useAuth();
 
   const [isReplyOpen, setIsReplyOpen] = useState(false);
-  const [isRepliesOpen, setAreRepliesOpen] = useState(false);
+  const [isRepliesOpen, setIsRepliesOpen] = useState(false);
+  const [likeClicked, setLikeClicked] = useState(false);
+  const [dislikeClicked, setDislikeClicked] = useState(false);
 
   const utils = trpc.useUtils();
   const remove = trpc.comments.remove.useMutation({
@@ -92,13 +98,17 @@ export const CommentItem = ({
   };
 
   const handleLike = () => {
+    setLikeClicked(true);
+    setTimeout(() => setLikeClicked(false), 300);
     like.mutate({ commentId: comment.id });
   };
   const handleDislike = () => {
+    setDislikeClicked(true);
+    setTimeout(() => setDislikeClicked(false), 300);
     dislike.mutate({ commentId: comment.id });
   };
   return (
-    <div className=" rounded-xl p-6  transition-colors duration-300">
+    <div className=" rounded-xl p-2 transition-colors duration-300">
       <div
         className={cn("flex gap-4 group", {
           "opacity-50": isPending,
@@ -107,92 +117,206 @@ export const CommentItem = ({
       >
         <Link href={`/users/${comment.userId}`}>
           <UserAvatar
-            size={"lg"}
+            size={variant === "comment" ? "lg" : "sm"}
             imageUrl={comment.user.imageUrl}
             name={comment.user.name}
           />
         </Link>
-        <div className="flex-1 min-w-0 group">
+        <div className="flex-1 min-w-0 group/comment">
           <Link href={`/users/${comment.userId}`}>
             <div className="flex items-center gap-2 mb-0.5">
               <span className="font-meidum text-sm pb-0.5">
                 {comment.user.name}
               </span>
-              <span className="text-xs text-muted-foreground">
-                {formatDistanceToNow(comment.createdAt, {
-                  addSuffix: true,
-                })}
-              </span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="text-xs text-muted-foreground hover:underline cursor-pointer hover:text-muted-foreground/80 transition-colors">
+                    {formatDistanceToNow(comment.createdAt, {
+                      addSuffix: true,
+                    })}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="bottom"
+                  className="bg-black/80 max-w-[200px] px-3 py-2"
+                >
+                  <div className="flex flex-col gap-1 text-sm font-normal">
+                    <p className="text-gray-300">
+                      {format(comment.createdAt, "PPpp")}
+                    </p>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
             </div>
           </Link>
           <p className="text-sm ">{comment.value}</p>
 
-          <div
-            className={cn(
-              "flex items-center gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-all",
-              {
-                "opacity-70": isPending,
-                "opacity-100":
-                  comment.likeCount > 0 || comment.dislikeCount > 0,
-              }
-            )}
-          >
-            <div className="flex items-center gap-1">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    disabled={isPending}
-                    className="size-8"
-                    size={"icon"}
-                    variant={"ghost"}
-                    onClick={handleLike}
-                  >
-                    <ThumbsUpIcon
-                      className={cn(
-                        comment.viewerReactions === "like" && "fill-black"
-                      )}
-                    />
-                  </Button>
-                </TooltipTrigger>
-                <span>{comment.likeCount}</span>
-                <TooltipContent side="top" className="bg-black/80">
-                  <p>Like</p>
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    disabled={isPending}
-                    className="size-8"
-                    size={"icon"}
-                    variant={"ghost"}
-                    onClick={handleDislike}
-                  >
-                    <ThumbsDownIcon
-                      className={cn(
-                        comment.viewerReactions === "dislike" && "fill-black"
-                      )}
-                    />
-                  </Button>
-                </TooltipTrigger>
-                <span>{comment.dislikeCount}</span>
-                <TooltipContent side="top" className="bg-black/80">
-                  <p>Dislike</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-            {variant === "comment" && (
-              <Button
-                variant={"ghost"}
-                size={"sm"}
-                className="h-8"
-                onClick={() => setIsReplyOpen(true)}
+          <div className="relative overflow-hidden">
+            <AnimatePresence>
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{
+                  height:
+                    comment.likeCount > 0 || comment.dislikeCount > 0
+                      ? "auto"
+                      : ["0px", "auto"],
+                  opacity:
+                    comment.likeCount > 0 || comment.dislikeCount > 0
+                      ? 1
+                      : [0, 1],
+                }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 500,
+                  damping: 30,
+                  opacity: { duration: 0.2 },
+                }}
+                className="origin-top border-t border-transparent group-hover/comment:border-gray-100 mt-2 pt-2"
+                style={{
+                  transformOrigin: "top",
+                  pointerEvents: "auto",
+                }}
               >
-                Reply
-              </Button>
-            )}
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-0.5 text-sm">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <motion.div
+                          whileTap={{ scale: 0.9 }}
+                          whileHover={{ scale: 1.1 }}
+                        >
+                          <Button
+                            disabled={isPending}
+                            className={cn(
+                              "size-8",
+                              comment.viewerReactions === "like" &&
+                                "animate-like"
+                            )}
+                            size={"icon"}
+                            variant={"ghost"}
+                            onClick={handleLike}
+                          >
+                            <motion.div
+                              animate={{
+                                scale: likeClicked
+                                  ? [1, 1.4, 1]
+                                  : comment.viewerReactions === "like"
+                                  ? 1.1
+                                  : 1,
+                              }}
+                              transition={{
+                                duration: 0.3,
+                                type: likeClicked ? "tween" : "spring",
+                                stiffness: 300,
+                              }}
+                            >
+                              <ThumbsUpIcon
+                                className={cn(
+                                  "transition-transform",
+                                  comment.viewerReactions === "like" &&
+                                    "fill-black"
+                                )}
+                              />
+                            </motion.div>
+                          </Button>
+                        </motion.div>
+                      </TooltipTrigger>
+                      <motion.span
+                        key={comment.likeCount}
+                        initial={{ opacity: 0, y: -5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className={cn(
+                          comment.viewerReactions === "like" && "text-blue-500"
+                        )}
+                      >
+                        {comment.likeCount}
+                      </motion.span>
+                      <TooltipContent side="top" className="bg-black/80">
+                        <p>Like</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <motion.div
+                          whileTap={{ scale: 0.9 }}
+                          whileHover={{ scale: 1.1 }}
+                        >
+                          <Button
+                            disabled={isPending}
+                            className={cn(
+                              "size-8",
+                              comment.viewerReactions === "dislike" &&
+                                "animate-like"
+                            )}
+                            size={"icon"}
+                            variant={"ghost"}
+                            onClick={handleDislike}
+                          >
+                            <motion.div
+                              animate={{
+                                scale: dislikeClicked
+                                  ? [1, 1.4, 1]
+                                  : comment.viewerReactions === "dislike"
+                                  ? 1.1
+                                  : 1,
+                              }}
+                              transition={{
+                                duration: 0.3,
+                                type: dislikeClicked ? "tween" : "spring",
+                                stiffness: 300,
+                              }}
+                            >
+                              <ThumbsDownIcon
+                                className={cn(
+                                  "transition-transform",
+                                  comment.viewerReactions === "dislike" &&
+                                    "fill-black"
+                                )}
+                              />
+                            </motion.div>
+                          </Button>
+                        </motion.div>
+                      </TooltipTrigger>
+                      <motion.span
+                        key={comment.dislikeCount}
+                        initial={{ opacity: 0, y: -5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className={cn(
+                          comment.viewerReactions === "dislike" &&
+                            "text-blue-500"
+                        )}
+                      >
+                        {comment.dislikeCount}
+                      </motion.span>
+                      <TooltipContent side="top" className="bg-black/80">
+                        <p>Dislike</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  {variant === "comment" && (
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Button
+                        variant={"ghost"}
+                        size={"sm"}
+                        className="h-8"
+                        onClick={() => setIsReplyOpen(true)}
+                      >
+                        Reply
+                      </Button>
+                    </motion.div>
+                  )}
+                </div>
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
+
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <Button variant={"ghost"} size={"icon"} className="size-8">
@@ -200,12 +324,11 @@ export const CommentItem = ({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            {variant === "comment" && (
-              <DropdownMenuItem onClick={() => setIsReplyOpen(true)}>
-                <MessageSquareIcon className="size-4 " />
-                Reply
-              </DropdownMenuItem>
-            )}
+            <DropdownMenuItem onClick={() => setIsReplyOpen(true)}>
+              <MessageSquareIcon className="size-4 " />
+              Reply
+            </DropdownMenuItem>
+
             {comment.user.clerkId === userId && (
               <DropdownMenuItem
                 onClick={handleRemove}
@@ -227,10 +350,26 @@ export const CommentItem = ({
             onCancel={() => setIsReplyOpen(false)}
             onSuccess={() => {
               setIsReplyOpen(false);
-              setAreRepliesOpen(true);
+              setIsRepliesOpen(true);
             }}
           />
         </div>
+      )}
+      {comment.replyCount > 0 && variant === "comment" && (
+        <div className="pl-14">
+          <Button
+            size="sm"
+            variant={"tertiary"}
+            className="text-blue-500"
+            onClick={() => setIsRepliesOpen((current) => !current)}
+          >
+            {isRepliesOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
+            {comment.replyCount} replies
+          </Button>
+        </div>
+      )}
+      {comment.replyCount > 0 && variant === "comment" && isRepliesOpen && (
+        <CommentReplies parentId={comment.id} videoId={comment.videoId} />
       )}
     </div>
   );
