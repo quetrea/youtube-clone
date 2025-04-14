@@ -18,6 +18,7 @@ import { UserAvatar } from "@/components/user-avatar";
 import { VideoMenu } from "./video-menu";
 import { VideoThumbnail } from "./video-thumbnail";
 import { VideoGetManyOutput } from "../../types";
+import { formatDistanceToNow } from "date-fns";
 
 const videoRowCardVariants = cva("group flex min-w-0", {
   variants: {
@@ -31,7 +32,7 @@ const videoRowCardVariants = cva("group flex min-w-0", {
   },
 });
 
-const thumbnialVariants = cva("relative flex-none", {
+const thumbnailVariants = cva("relative flex-none", {
   variants: {
     size: {
       default: "w-[38%]",
@@ -53,9 +54,20 @@ export const VideoRowCardskeleton = () => {
 };
 
 export const VideoRowCard = ({ data, size, onRemove }: VideoRowCardProps) => {
+  const compactViews = useMemo(() => {
+    return Intl.NumberFormat("en", {
+      notation: "compact",
+    }).format(data.viewCount);
+  }, [data.viewCount]);
+
+  const compactCreatedAt = useMemo(() => {
+    return formatDistanceToNow(data.createdAt);
+  }, [data.createdAt]);
+
+  const compactDislikes = useMemo(() => {}, [data.dislikeCount]);
   return (
     <div className={videoRowCardVariants({ size })}>
-      <Link href={`/videos/${data.id}`}>
+      <Link href={`/videos/${data.id}`} className={thumbnailVariants({ size })}>
         <VideoThumbnail
           imageUrl={data.thumbnailUrl!}
           previewUrl={data.previewUrl!}
@@ -63,6 +75,65 @@ export const VideoRowCard = ({ data, size, onRemove }: VideoRowCardProps) => {
           duration={data.duration}
         />
       </Link>
+      {/*Info */}
+      <div className="flex-1 min-w-0">
+        <div className="flex justify-between gap-x-2">
+          <Link href={`/videos/${data.id}`} className="flex-1 min-w-0">
+            <h3
+              className={cn(
+                "font-medium line-clamp-2",
+                size === "compact" ? "text-sm" : "text-base"
+              )}
+            >
+              {data.title}
+            </h3>{" "}
+            {size === "default" && (
+              <>
+                <div className="flex items-center gap-2 my-3">
+                  <UserAvatar
+                    size={"sm"}
+                    imageUrl={data.user.imageUrl}
+                    name={data.user.name}
+                  />
+                  <UserInfo size={"sm"} name={data.user.name} />
+                </div>{" "}
+                <Tooltip delayDuration={0}>
+                  <TooltipTrigger asChild>
+                    <p className="text-xs text-muted-foreground w-fit line-clamp-2">
+                      {data.description ?? "No description"}
+                    </p>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="bottom"
+                    align="center"
+                    className="bg-black/70"
+                  >
+                    <p className="text-xs text-muted-foreground">
+                      From the video description
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </>
+            )}
+            {size === "default" && (
+              <p className="text-xs text-muted-foreground mt-1">
+                {compactViews} views • {formatDistanceToNow(data.createdAt)}
+              </p>
+            )}
+            {size === "compact" && (
+              <UserInfo size={"sm"} name={data.user.name} />
+            )}
+            {size === "compact" && (
+              <p className="text-xs text-muted-foreground">
+                {data.viewCount} views • {compactCreatedAt}
+              </p>
+            )}
+          </Link>
+          <div className="flex-none">
+            <VideoMenu videoId={data.id} onRemove={onRemove} />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

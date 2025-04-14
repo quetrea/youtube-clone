@@ -6,8 +6,8 @@ import { THUMBNAIL_FALLBACK } from "../../constants";
 interface VideoThumbnailProps {
   title: string;
   duration: number;
-  imageUrl: string;
-  previewUrl: string;
+  imageUrl?: string;
+  previewUrl?: string;
 }
 
 export const VideoThumbnail = ({
