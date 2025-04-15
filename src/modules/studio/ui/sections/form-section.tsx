@@ -84,6 +84,7 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
   const updateVideo = trpc.videos.update.useMutation();
   const restoreThumbnail = trpc.videos.restoreThumbnail.useMutation();
   const deleteVideo = trpc.videos.delete.useMutation();
+  const revalidateVideo = trpc.videos.revalidate.useMutation();
 
   const categoriesMap = categories.map((category) => ({
     value: category.id,
@@ -131,6 +132,22 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
           utils.studio.getOne.invalidate({ id: videoId });
 
           toast.success("Video deleted");
+        },
+        onError: (error) => {
+          toast.error("Something went wrong");
+        },
+      }
+    );
+  };
+  const handleRevalidate = async () => {
+    await revalidateVideo.mutateAsync(
+      { id: videoId },
+      {
+        onSuccess: () => {
+          utils.studio.getMany.invalidate();
+          utils.studio.getOne.invalidate({ id: videoId });
+
+          toast.success("Video revalidated");
         },
         onError: (error) => {
           toast.error("Something went wrong");
@@ -195,6 +212,10 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleRevalidate}>
+                    <RotateCcwIcon className="size-4 mr-2" />
+                    Revalidate
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleDelete}>
                     <TrashIcon className="size-4 mr-2" />
                     Delete
