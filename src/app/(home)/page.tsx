@@ -8,8 +8,14 @@ interface PageProps {
 
 export const metadata: Metadata = {
   title: "Home - Discover the Best Video Content",
-  description: "Watch the latest and most popular videos on NewTube. Browse by categories and follow your favorite content creators.",
-  keywords: ["video platform", "watch videos", "content creators", "popular videos"],
+  description:
+    "Watch the latest and most popular videos on NewTube. Browse by categories and follow your favorite content creators.",
+  keywords: [
+    "video platform",
+    "watch videos",
+    "content creators",
+    "popular videos",
+  ],
   alternates: {
     canonical: "https://newtube.example.com",
   },
