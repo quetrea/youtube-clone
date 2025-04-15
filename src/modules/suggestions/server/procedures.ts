@@ -125,7 +125,7 @@ export const suggestionsRouter = createTRPCRouter({
                   )}) THEN 30 ELSE 0 END`
                 : sql``
             }
-          `,
+          `.as("relevance_score"),
         })
         .from(videos)
         .innerJoin(users, eq(videos.userId, users.id))
@@ -134,30 +134,10 @@ export const suggestionsRouter = createTRPCRouter({
             // Exclude current video
             not(eq(videos.id, existingVideo.id)),
             // Only public videos
-            eq(videos.visibility, "public"),
-            // Exclude already viewed videos if we have user history
-            userViewedVideoIds.length > 0
-              ? not(inArray(videos.id, userViewedVideoIds))
-              : undefined,
-            // Pagination condition
-            cursor
-              ? or(
-                  lt(videos.updatedAt, cursor.updatedAt),
-                  and(
-                    eq(videos.updatedAt, cursor.updatedAt),
-                    lt(videos.id, cursor.id)
-                  )
-                )
-              : undefined
+            eq(videos.visibility, "public")
           )
         )
-        // Order by our calculated relevance score first, then by recency
-        .orderBy(
-          sql`relevanceScore DESC`,
-          desc(videos.updatedAt),
-          desc(videos.id)
-        )
-        // Add 1 to the limit to check if there is more data
+        .orderBy(desc(sql`relevance_score`), desc(videos.updatedAt))
         .limit(limit + 1);
 
       const hasMore = data.length > limit;
