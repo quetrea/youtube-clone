@@ -2,6 +2,7 @@
 import { trpc } from "@/trpc/client";
 import { DEFAULT_LIMIT } from "@/constants";
 import { InfiniteScroll } from "@/components/infinite-scroll";
+import { useUser } from "@clerk/nextjs";
 
 import { VideoRowCard } from "../components/video-row-card";
 import { VideoGridCard } from "../components/video-grid-card";
@@ -14,10 +15,13 @@ export const SuggestionsSection = ({
   videoId,
   isManuel,
 }: SuggestionsSectionProps) => {
+  const { user } = useUser();
+  
   const [suggestions, query] =
     trpc.suggestions.getMany.useSuspenseInfiniteQuery(
       {
         videoId: videoId,
+        userId: user?.id, // Pass the user's ID if available for personalized recommendations
         limit: DEFAULT_LIMIT,
       },
       {
