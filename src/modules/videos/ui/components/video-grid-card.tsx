@@ -14,9 +14,9 @@ import {
 import { UserInfo } from "@/modules/users/ui/components/user-info";
 import { UserAvatar } from "@/components/user-avatar";
 
-import { VideoThumbnail } from "./video-thumbnail";
+import { VideoThumbnail, VideoThumbnailSkeleton } from "./video-thumbnail";
 import { VideoGetManyOutput } from "../../types";
-import { VideoInfo } from "./video-info";
+import { VideoInfo, VideoInfoSkeleton } from "./video-info";
 
 interface VideoRowCardProps {
   data: VideoGetManyOutput["items"][number];
@@ -24,7 +24,12 @@ interface VideoRowCardProps {
 }
 
 export const VideoRowCardskeleton = () => {
-  return <div>Skeleton</div>;
+  return (
+    <div className="flex flex-col gap-2 w-full">
+      <VideoThumbnailSkeleton />
+      <VideoInfoSkeleton />
+    </div>
+  );
 };
 
 export const VideoGridCard = ({ data, onRemove }: VideoRowCardProps) => {
