@@ -1,8 +1,11 @@
 "use client";
+import { Suspense } from "react";
+import { ErrorBoundary } from "react-error-boundary";
 import { trpc } from "@/trpc/client";
 import { DEFAULT_LIMIT } from "@/constants";
 import { InfiniteScroll } from "@/components/infinite-scroll";
 import { useAuth } from "@clerk/nextjs";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import { VideoRowCard } from "../components/video-row-card";
 import { VideoGridCard } from "../components/video-grid-card";
@@ -23,6 +26,19 @@ const isValidUUID = (id: string | null | undefined): boolean => {
 };
 
 export const SuggestionsSection = ({
+  videoId,
+  isManuel,
+}: SuggestionsSectionProps) => {
+  return (
+    <Suspense fallback={<SuggestionsSkeleton />}>
+      <ErrorBoundary fallback={<SuggestionsError />}>
+        <SuggestionsContentSuspense videoId={videoId} isManuel={isManuel} />
+      </ErrorBoundary>
+    </Suspense>
+  );
+};
+
+const SuggestionsContentSuspense = ({
   videoId,
   isManuel,
 }: SuggestionsSectionProps) => {
@@ -64,5 +80,57 @@ export const SuggestionsSection = ({
         fetchNextPage={query.fetchNextPage}
       />
     </>
+  );
+};
+
+const SuggestionsSkeleton = () => {
+  return (
+    <>
+      <div className="hidden md:block space-y-3">
+        {Array(4)
+          .fill(0)
+          .map((_, index) => (
+            <div key={index} className="flex gap-3">
+              <Skeleton className="h-24 w-40 rounded-md" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-1/2" />
+                <Skeleton className="h-3 w-1/3" />
+              </div>
+            </div>
+          ))}
+      </div>
+      <div className="block md:hidden space-y-10">
+        {Array(2)
+          .fill(0)
+          .map((_, index) => (
+            <div key={index} className="space-y-2">
+              <Skeleton className="h-44 w-full rounded-md" />
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-3 w-1/2" />
+            </div>
+          ))}
+      </div>
+    </>
+  );
+};
+
+// Error fallback component for the suggestions section
+const SuggestionsError = () => {
+  return (
+    <div className="flex flex-col items-center justify-center py-10 text-center">
+      <p className="text-lg font-semibold text-destructive mb-2">
+        Failed to load suggestions
+      </p>
+      <p className="text-sm text-muted-foreground mb-4">
+        There was an error loading the video suggestions.
+      </p>
+      <button
+        onClick={() => window.location.reload()}
+        className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition"
+      >
+        Try again
+      </button>
+    </div>
   );
 };
