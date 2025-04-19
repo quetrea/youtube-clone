@@ -7,8 +7,14 @@ import { InfiniteScroll } from "@/components/infinite-scroll";
 import { useAuth } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton";
 
-import { VideoRowCard } from "../components/video-row-card";
-import { VideoGridCard } from "../components/video-grid-card";
+import {
+  VideoRowCard,
+  VideoRowCardSkeleton,
+} from "../components/video-row-card";
+import {
+  VideoGridCard,
+  VideoGridCardSkeleton,
+} from "../components/video-grid-card";
 
 interface SuggestionsSectionProps {
   videoId: string;
@@ -87,28 +93,17 @@ const SuggestionsSkeleton = () => {
   return (
     <>
       <div className="hidden md:block space-y-3">
-        {Array(4)
+        {Array(8)
           .fill(0)
           .map((_, index) => (
-            <div key={index} className="flex gap-3">
-              <Skeleton className="h-24 w-40 rounded-md" />
-              <div className="flex-1 space-y-2">
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-3 w-1/2" />
-                <Skeleton className="h-3 w-1/3" />
-              </div>
-            </div>
+            <VideoRowCardSkeleton key={index} size="compact" />
           ))}
       </div>
       <div className="block md:hidden space-y-10">
-        {Array(2)
+        {Array(8)
           .fill(0)
           .map((_, index) => (
-            <div key={index} className="space-y-2">
-              <Skeleton className="h-44 w-full rounded-md" />
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-3 w-1/2" />
-            </div>
+            <VideoGridCardSkeleton key={index} />
           ))}
       </div>
     </>

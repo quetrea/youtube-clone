@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { APP_URL } from "@/constants";
 
 interface VideoMenuProps {
   videoId: string;
@@ -27,9 +28,7 @@ export const VideoMenu = ({
 }: VideoMenuProps) => {
   const onShare = () => {
     // TODO: Change if deploying outside of VERCEL
-    const shareUrl = `${
-      process.env.NEXT_PUBLIC_URL || "http://localhost:3000"
-    }/videos/${videoId}`;
+    const shareUrl = `${APP_URL || "http://localhost:3000"}/videos/${videoId}`;
 
     navigator.clipboard.writeText(shareUrl);
 
