@@ -8,3 +8,12 @@ export type VideoGetOneOutput =
 // TODO: Change to video GetMany
 export type VideoGetManyOutput =
   inferRouterOutputs<AppRouter>["suggestions"]["getMany"];
+
+// Adding types for the search results with relevance score
+export type SearchResultItem = inferRouterOutputs<AppRouter>["search"]["getMany"]["items"][number] & {
+  relevanceScore: number;
+}
+
+export type SearchResultOutput = Omit<inferRouterOutputs<AppRouter>["search"]["getMany"], "items"> & {
+  items: SearchResultItem[];
+};

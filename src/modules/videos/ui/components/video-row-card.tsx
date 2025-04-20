@@ -5,6 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 
 import {
   Tooltip,
@@ -45,12 +46,15 @@ const thumbnailVariants = cva("relative flex-none", {
 });
 
 interface VideoRowCardProps extends VariantProps<typeof videoRowCardVariants> {
-  data: VideoGetManyOutput["items"][number];
+  data: VideoGetManyOutput["items"][number] & {
+    relevanceScore?: number;
+  };
   onRemove?: () => void;
+  showRelevance?: boolean;
 }
 
 export const VideoRowCardSkeleton = ({
-  size,
+  size = "default",
 }: VariantProps<typeof videoRowCardVariants>) => {
   return (
     <div className={videoRowCardVariants({ size })}>
@@ -85,7 +89,12 @@ export const VideoRowCardSkeleton = ({
   );
 };
 
-export const VideoRowCard = ({ data, size, onRemove }: VideoRowCardProps) => {
+export const VideoRowCard = ({
+  data,
+  size = "default",
+  onRemove,
+  showRelevance = false,
+}: VideoRowCardProps) => {
   const compactViews = useMemo(() => {
     return Intl.NumberFormat("en", {
       notation: "compact",
@@ -96,7 +105,18 @@ export const VideoRowCard = ({ data, size, onRemove }: VideoRowCardProps) => {
     return formatDistanceToNow(data.createdAt);
   }, [data.createdAt]);
 
-  const compactDislikes = useMemo(() => {}, [data.dislikeCount]);
+  // Get a label for the relevance score
+  const relevanceLabel = useMemo(() => {
+    if (!showRelevance || typeof data.relevanceScore !== "number") return null;
+
+    if (data.relevanceScore >= 10) return "Perfect match";
+    if (data.relevanceScore >= 8) return "Excellent match";
+    if (data.relevanceScore >= 6) return "Good match";
+    if (data.relevanceScore >= 4) return "Relevant";
+    if (data.relevanceScore >= 2) return "Somewhat relevant";
+    return "Low relevance";
+  }, [data.relevanceScore, showRelevance]);
+
   return (
     <div className={videoRowCardVariants({ size })}>
       <Link href={`/videos/${data.id}`} className={thumbnailVariants({ size })}>
@@ -111,14 +131,21 @@ export const VideoRowCard = ({ data, size, onRemove }: VideoRowCardProps) => {
       <div className="flex-1 min-w-0">
         <div className="flex justify-between gap-x-2">
           <Link href={`/videos/${data.id}`} className="flex-1 min-w-0">
-            <h3
-              className={cn(
-                "font-medium line-clamp-2",
-                size === "compact" ? "text-sm" : "text-base"
+            <div className="flex items-center gap-2">
+              <h3
+                className={cn(
+                  "font-medium line-clamp-2 flex-grow",
+                  size === "compact" ? "text-sm" : "text-base"
+                )}
+              >
+                {data.title}
+              </h3>
+              {relevanceLabel && (
+                <Badge variant="outline" className="shrink-0 text-xs">
+                  {relevanceLabel}
+                </Badge>
               )}
-            >
-              {data.title}
-            </h3>{" "}
+            </div>
             {size === "default" && (
               <>
                 <div className="flex items-center gap-2 my-3">
@@ -128,7 +155,7 @@ export const VideoRowCard = ({ data, size, onRemove }: VideoRowCardProps) => {
                     name={data.user.name}
                   />
                   <UserInfo size={"sm"} name={data.user.name} />
-                </div>{" "}
+                </div>
                 <Tooltip delayDuration={0}>
                   <TooltipTrigger asChild>
                     <p className="text-xs text-muted-foreground w-fit line-clamp-2">

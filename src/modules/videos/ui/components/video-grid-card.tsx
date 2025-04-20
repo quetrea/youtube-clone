@@ -19,8 +19,11 @@ import { VideoGetManyOutput } from "../../types";
 import { VideoInfo, VideoInfoSkeleton } from "./video-info";
 
 interface VideoGridCardProps {
-  data: VideoGetManyOutput["items"][number];
+  data: VideoGetManyOutput["items"][number] & {
+    relevanceScore?: number;
+  };
   onRemove?: () => void;
+  showRelevance?: boolean;
 }
 
 export const VideoGridCardSkeleton = () => {
@@ -32,7 +35,11 @@ export const VideoGridCardSkeleton = () => {
   );
 };
 
-export const VideoGridCard = ({ data, onRemove }: VideoGridCardProps) => {
+export const VideoGridCard = ({ 
+  data, 
+  onRemove,
+  showRelevance = false 
+}: VideoGridCardProps) => {
   return (
     <div className="flex flex-col gap-2 w-full group">
       <Link href={`/videos/${data.id}`}>
@@ -44,7 +51,11 @@ export const VideoGridCard = ({ data, onRemove }: VideoGridCardProps) => {
         />
       </Link>
       {/*Info */}
-      <VideoInfo data={data} onRemove={onRemove} />
+      <VideoInfo 
+        data={data} 
+        onRemove={onRemove} 
+        showRelevance={showRelevance}
+      />
     </div>
   );
 };
