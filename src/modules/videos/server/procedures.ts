@@ -133,6 +133,8 @@ export const videosRouter = createTRPCRouter({
         throw new TRPCError({ code: "BAD_REQUEST" });
       }
 
+      // We first have to clean up potential unique attributes
+
       const [updatedVideo] = await db
         .update(videos)
         .set({

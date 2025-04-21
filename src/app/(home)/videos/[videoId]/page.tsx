@@ -7,6 +7,7 @@ import { videos, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { unstable_noStore as noStore } from "next/cache";
 
+export const dynamic = "force-dynamic";
 interface PageProps {
   params: Promise<{ videoId: string }>;
 }

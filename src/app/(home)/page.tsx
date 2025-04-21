@@ -2,6 +2,8 @@ import { Metadata } from "next";
 import { HydrateClient, trpc } from "@/trpc/server";
 import { HomeView } from "@/modules/home/ui/views/home-view";
 
+export const dynamic = "force-dynamic";
+
 interface PageProps {
   searchParams: Promise<{ categoryId?: string }>;
 }
