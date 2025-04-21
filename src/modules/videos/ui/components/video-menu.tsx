@@ -28,7 +28,7 @@ export const VideoMenu = ({
 }: VideoMenuProps) => {
   const onShare = () => {
     // TODO: Change if deploying outside of VERCEL
-    const shareUrl = `${APP_URL || "http://localhost:3000"}/videos/${videoId}`;
+    const shareUrl = `${APP_URL}/videos/${videoId}`;
 
     navigator.clipboard.writeText(shareUrl);
 
