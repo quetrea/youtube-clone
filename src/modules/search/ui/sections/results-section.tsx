@@ -132,7 +132,10 @@ const ResultsContent = ({ query, categoryId }: ResultsSectionProps) => {
 // Main component with Suspense and Error boundaries
 export const ResultsSection = (props: ResultsSectionProps) => {
   return (
-    <Suspense fallback={<ResultsSkeleton />}>
+    <Suspense
+      key={`${props.query}-${props.categoryId}`}
+      fallback={<ResultsSkeleton />}
+    >
       <ErrorBoundary
         FallbackComponent={ErrorFallback}
         onReset={() => {
