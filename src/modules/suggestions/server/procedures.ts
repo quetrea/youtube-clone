@@ -134,7 +134,16 @@ export const suggestionsRouter = createTRPCRouter({
             // Exclude current video
             not(eq(videos.id, existingVideo.id)),
             // Only public videos
-            eq(videos.visibility, "public")
+            eq(videos.visibility, "public"),
+            cursor
+              ? or(
+                  lt(videos.updatedAt, cursor.updatedAt),
+                  and(
+                    eq(videos.updatedAt, cursor.updatedAt),
+                    lt(videos.id, cursor.id)
+                  )
+                )
+              : undefined
           )
         )
         .orderBy(desc(sql`relevance_score`), desc(videos.updatedAt))

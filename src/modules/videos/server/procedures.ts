@@ -9,7 +9,18 @@ import {
   videoViews,
 } from "@/db/schema";
 import { TRPCError } from "@trpc/server";
-import { and, eq, getTableColumns, inArray, isNotNull } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  getTableColumns,
+  ilike,
+  inArray,
+  isNotNull,
+  lt,
+  or,
+  sql,
+} from "drizzle-orm";
 import {
   baseProcedure,
   createTRPCRouter,
@@ -19,6 +30,304 @@ import { mux } from "@/lib/mux";
 import { UTApi } from "uploadthing/server";
 
 export const videosRouter = createTRPCRouter({
+  getManySubscribed: protectedProcedure
+    .input(
+      z.object({
+        categoryId: z.string().uuid().nullish(),
+        cursor: z
+          .object({
+            id: z.string().uuid(),
+            updatedAt: z.date(),
+          })
+          .nullish(),
+        limit: z.number().min(1).max(100),
+        sortBy: z.enum(["latest", "popular", "trending"]).default("latest"),
+        userId: z.string().uuid().nullish(), // Current user ID to check visibility permissions
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      const { id: userId } = ctx.user;
+      const { cursor, limit } = input;
+
+      const viewerSubscriptions = db.$with("viewer_subscriptions").as(
+        db
+          .select({
+            userId: subscriptions.creatorId,
+          })
+          .from(subscriptions)
+          .where(eq(subscriptions.viewerId, userId))
+      );
+
+      // Build the query
+      const query = db
+        .select({
+          ...getTableColumns(videos),
+          user: users,
+          viewCount: db.$count(videoViews, eq(videoViews.videoId, videos.id)),
+          likeCount: db.$count(
+            videoReactions,
+            and(
+              eq(videoReactions.videoId, videos.id),
+              eq(videoReactions.type, "like")
+            )
+          ),
+          dislikeCount: db.$count(
+            videoReactions,
+            and(
+              eq(videoReactions.videoId, videos.id),
+              eq(videoReactions.type, "dislike")
+            )
+          ),
+        })
+        .from(videos)
+        .innerJoin(users, eq(videos.userId, users.id))
+        .innerJoin(
+          viewerSubscriptions,
+          eq(viewerSubscriptions.userId, users.id)
+        )
+        .where(
+          and(
+            eq(videos.visibility, "public"),
+            cursor
+              ? or(
+                  lt(videos.updatedAt, cursor.updatedAt),
+                  and(
+                    eq(videos.updatedAt, cursor.updatedAt),
+                    lt(videos.id, cursor.id)
+                  )
+                )
+              : undefined
+          )
+        );
+
+      // Apply limit for pagination
+      query.limit(limit + 1);
+
+      // Execute the query
+      const data = await query;
+
+      // Handle pagination
+      const hasMore = data.length > limit;
+      const items = hasMore ? data.slice(0, -1) : data;
+      const lastItem = items[items.length - 1];
+      const nextCursor =
+        hasMore && lastItem
+          ? {
+              id: lastItem.id,
+              updatedAt: lastItem.updatedAt,
+            }
+          : null;
+
+      return {
+        items,
+        nextCursor,
+      };
+    }),
+  getManyTrending: baseProcedure
+    .input(
+      z.object({
+        cursor: z
+          .object({
+            id: z.string().uuid(),
+            viewCount: z.number(),
+          })
+          .nullish(),
+        limit: z.number().min(1).max(100),
+        userId: z.string().uuid().nullish(), // Current user ID to check visibility permissions
+      })
+    )
+    .query(async ({ input }) => {
+      const { cursor, limit } = input;
+
+      const viewCountSubquery = db.$count(
+        videoViews,
+        eq(videoViews.videoId, videos.id)
+      );
+
+      // Build the query
+      const query = db
+        .select({
+          ...getTableColumns(videos),
+          user: users,
+          viewCount: viewCountSubquery,
+          likeCount: db.$count(
+            videoReactions,
+            and(
+              eq(videoReactions.videoId, videos.id),
+              eq(videoReactions.type, "like")
+            )
+          ),
+          dislikeCount: db.$count(
+            videoReactions,
+            and(
+              eq(videoReactions.videoId, videos.id),
+              eq(videoReactions.type, "dislike")
+            )
+          ),
+        })
+        .from(videos)
+        .innerJoin(users, eq(videos.userId, users.id))
+        .where(
+          cursor
+            ? or(
+                lt(viewCountSubquery, cursor.viewCount),
+                and(
+                  eq(viewCountSubquery, cursor.viewCount),
+                  lt(videos.id, cursor.id)
+                )
+              )
+            : undefined
+        );
+
+      // Always use trending sorting - most views and recent updates
+      query.orderBy(desc(viewCountSubquery), desc(videos.id));
+
+      // Apply limit for pagination
+      query.limit(limit + 1);
+
+      // Execute the query
+      const data = await query;
+
+      // Handle pagination
+      const hasMore = data.length > limit;
+      const items = hasMore ? data.slice(0, -1) : data;
+      const lastItem = items[items.length - 1];
+      const nextCursor =
+        hasMore && lastItem
+          ? {
+              id: lastItem.id,
+              viewCount: lastItem.viewCount,
+            }
+          : null;
+
+      return {
+        items,
+        nextCursor,
+      };
+    }),
+  getMany: baseProcedure
+    .input(
+      z.object({
+        categoryId: z.string().uuid().nullish(),
+        cursor: z
+          .object({
+            id: z.string().uuid(),
+            updatedAt: z.date(),
+          })
+          .nullish(),
+        limit: z.number().min(1).max(100),
+        sortBy: z.enum(["latest", "popular", "trending"]).default("latest"),
+        userId: z.string().uuid().nullish(), // Current user ID to check visibility permissions
+      })
+    )
+    .query(async ({ input }) => {
+      const { cursor, limit, categoryId, sortBy, userId } = input;
+
+      // Create the visibility condition
+      const visibilityCondition = userId
+        ? or(
+            eq(videos.visibility, "public"),
+            and(eq(videos.visibility, "private"), eq(videos.userId, userId))
+          )
+        : eq(videos.visibility, "public");
+
+      // Build WHERE conditions
+      const conditions = [];
+
+      // Always add visibility condition
+      conditions.push(visibilityCondition);
+
+      // Add category filter if specified
+      if (categoryId) {
+        conditions.push(eq(videos.categoryId, categoryId));
+      }
+
+      // Add cursor pagination if specified
+      if (cursor) {
+        conditions.push(
+          or(
+            lt(videos.updatedAt, cursor.updatedAt),
+            and(
+              eq(videos.updatedAt, cursor.updatedAt),
+              lt(videos.id, cursor.id)
+            )
+          )
+        );
+      }
+
+      // Build the query
+      const query = db
+        .select({
+          ...getTableColumns(videos),
+          user: users,
+          viewCount: db.$count(videoViews, eq(videoViews.videoId, videos.id)),
+          likeCount: db.$count(
+            videoReactions,
+            and(
+              eq(videoReactions.videoId, videos.id),
+              eq(videoReactions.type, "like")
+            )
+          ),
+          dislikeCount: db.$count(
+            videoReactions,
+            and(
+              eq(videoReactions.videoId, videos.id),
+              eq(videoReactions.type, "dislike")
+            )
+          ),
+        })
+        .from(videos)
+        .innerJoin(users, eq(videos.userId, users.id))
+        .where(and(...conditions));
+
+      // Apply sorting based on the sortBy parameter
+      switch (sortBy) {
+        case "popular":
+          // Popular videos - most views
+          query.orderBy(
+            desc(sql`viewCount`),
+            desc(videos.updatedAt),
+            desc(videos.id)
+          );
+          break;
+        case "trending":
+          // Trending videos - most likes in recent period
+          query.orderBy(
+            desc(sql`likeCount`),
+            desc(videos.updatedAt),
+            desc(videos.id)
+          );
+          break;
+        case "latest":
+        default:
+          // Latest videos - most recent first
+          query.orderBy(desc(videos.updatedAt), desc(videos.id));
+          break;
+      }
+
+      // Apply limit for pagination
+      query.limit(limit + 1);
+
+      // Execute the query
+      const data = await query;
+
+      // Handle pagination
+      const hasMore = data.length > limit;
+      const items = hasMore ? data.slice(0, -1) : data;
+      const lastItem = items[items.length - 1];
+      const nextCursor =
+        hasMore && lastItem
+          ? {
+              id: lastItem.id,
+              updatedAt: lastItem.updatedAt,
+            }
+          : null;
+
+      return {
+        items,
+        nextCursor,
+      };
+    }),
   getOne: baseProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ input, ctx }) => {

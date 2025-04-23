@@ -28,7 +28,11 @@ export const VideoInfoSkeleton = () => {
   );
 };
 
-export const VideoInfo = ({ data, onRemove, showRelevance = false }: VideoInfoProps) => {
+export const VideoInfo = ({
+  data,
+  onRemove,
+  showRelevance = false,
+}: VideoInfoProps) => {
   const compactViews = useMemo(() => {
     return Intl.NumberFormat("en", {
       notation: "compact",
@@ -41,8 +45,8 @@ export const VideoInfo = ({ data, onRemove, showRelevance = false }: VideoInfoPr
 
   // Get a label for the relevance score
   const relevanceLabel = useMemo(() => {
-    if (!showRelevance || typeof data.relevanceScore !== 'number') return null;
-    
+    if (!showRelevance || typeof data.relevanceScore !== "number") return null;
+
     if (data.relevanceScore >= 10) return "Perfect match";
     if (data.relevanceScore >= 8) return "Excellent match";
     if (data.relevanceScore >= 6) return "Good match";
@@ -73,13 +77,13 @@ export const VideoInfo = ({ data, onRemove, showRelevance = false }: VideoInfoPr
           <UserInfo name={data.user.name} />
         </Link>
         <Link href={`/videos/${data.id}`}>
-          <p>
+          <p className="text-sm">
             {compactViews} views • {compactCreatedAt}
           </p>
         </Link>
-        <div className="flex-shrink-0">
-          <VideoMenu videoId={data.id} onRemove={onRemove} />
-        </div>
+      </div>
+      <div className="flex-shrink-0">
+        <VideoMenu videoId={data.id} onRemove={onRemove} />
       </div>
     </div>
   );
