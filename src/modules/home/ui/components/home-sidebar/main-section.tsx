@@ -11,6 +11,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { usePathname } from "next/navigation";
 
 const items = [
   {
@@ -20,7 +21,7 @@ const items = [
   },
   {
     title: "Subscriptions",
-    url: "/feed/subscriptions",
+    url: "/feed/subscribed",
     icon: PlaySquareIcon,
     auth: true,
   },
@@ -34,6 +35,7 @@ const items = [
 export const MainSection = () => {
   const { isSignedIn } = useAuth();
   const clerk = useClerk();
+  const pathname = usePathname();
   return (
     <SidebarGroup>
       <SidebarGroupContent>
@@ -43,7 +45,7 @@ export const MainSection = () => {
               <SidebarMenuButton
                 tooltip={item.title}
                 asChild
-                isActive={false} // TODO: Change to look at current pathname
+                isActive={pathname === item.url}
                 onClick={(e) => {
                   if (!isSignedIn && item.auth) {
                     e.preventDefault();
