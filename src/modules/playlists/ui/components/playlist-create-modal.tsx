@@ -48,7 +48,7 @@ export const PlaylistCreateModal = ({
       form.reset();
       onOpenChange(false);
       // Invalidate any relevant queries to refresh the playlist list
-      utils.playlists.invalidate();
+      utils.playlists.getMany.invalidate();
     },
     onError: (error) => {
       toast.error("Failed to create playlist", {
