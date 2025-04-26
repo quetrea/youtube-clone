@@ -71,8 +71,6 @@ const ResultsSkeleton = () => {
 
 // Results content component
 const ResultsContent = ({ query, categoryId }: ResultsSectionProps) => {
-  const isMobile = useIsMobile();
-
   const [results, resultQuery] = trpc.search.getMany.useSuspenseInfiniteQuery(
     {
       query,
@@ -99,27 +97,24 @@ const ResultsContent = ({ query, categoryId }: ResultsSectionProps) => {
 
   return (
     <>
-      {isMobile ? (
-        <div className="flex flex-col gap-4 gap-y-10">
-          {items.map((video) => (
-            <VideoGridCard
-              key={video.id}
-              data={video}
-              showRelevance={showRelevance}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="flex flex-col gap-4">
-          {items.map((video) => (
-            <VideoRowCard
-              key={video.id}
-              data={video}
-              showRelevance={showRelevance}
-            />
-          ))}
-        </div>
-      )}
+      <div className="flex flex-col gap-4 gap-y-10 md:hidden">
+        {items.map((video) => (
+          <VideoGridCard
+            key={video.id}
+            data={video}
+            showRelevance={showRelevance}
+          />
+        ))}
+      </div>
+      <div className="hidden flex-col gap-4 md:flex">
+        {items.map((video) => (
+          <VideoRowCard
+            key={video.id}
+            data={video}
+            showRelevance={showRelevance}
+          />
+        ))}
+      </div>
       <InfiniteScroll
         hasNextPage={resultQuery.hasNextPage}
         isFetchingNextPage={resultQuery.isFetchingNextPage}
