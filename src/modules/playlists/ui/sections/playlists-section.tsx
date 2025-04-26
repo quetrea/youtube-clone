@@ -6,13 +6,12 @@ import { trpc } from "@/trpc/client";
 import { DEFAULT_LIMIT } from "@/constants";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
-  VideoGridCard,
-  VideoGridCardSkeleton,
-} from "@/modules/videos/ui/components/video-grid-card";
+  PlaylistGridCard,
+  PlaylistGridCardSkeleton,
+} from "@/modules/playlists/ui/components/playlist-grid-card";
 import { InfiniteScroll } from "@/components/infinite-scroll";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
-import { PlaylistGridCard } from "../components/playlist-grid-card";
 
 // Error component
 const ErrorFallback = ({
@@ -40,7 +39,7 @@ const ErrorFallback = ({
 const PlaylistsSkeletonDesktop = () => (
   <div className="hidden md:grid gap-4 gap-y-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 [@media(min-width:1920px)]:grid-cols-5 [@media(min-width:2200px)]:grid-cols-6">
     {Array.from({ length: 18 }).map((_, index) => (
-      <VideoGridCardSkeleton key={index} />
+      <PlaylistGridCardSkeleton key={index} />
     ))}
   </div>
 );
@@ -49,7 +48,7 @@ const PlaylistsSkeletonDesktop = () => (
 const PlaylistsSkeletonMobile = () => (
   <div className="grid md:hidden gap-4 gap-y-10 grid-cols-1 sm:grid-cols-2">
     {Array.from({ length: 6 }).map((_, index) => (
-      <VideoGridCardSkeleton key={index} />
+      <PlaylistGridCardSkeleton key={index} />
     ))}
   </div>
 );
