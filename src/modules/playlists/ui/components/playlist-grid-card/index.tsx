@@ -16,7 +16,7 @@ export const PlaylistGridCard = ({ data }: PlaylistGridCardProps) => {
     <Link href={`/playlists/${data.id}`}>
       <div className="flex flex-col gap-2 w-full group">
         <PlaylistThumbnail
-          thumbnailUrl={THUMBNAIL_FALLBACK}
+          thumbnailUrl={data.thumbnailUrl ?? THUMBNAIL_FALLBACK}
           title={data.name}
           videoCount={data.videoCount}
         />
