@@ -40,11 +40,6 @@ Modern bir video paylaşım platformu klonu. Gerçek zamanlı video yükleme, ak
 
 ---
 
-### 📷 Görseller (isteğe bağlı alan)
-> Buraya birkaç ekran görüntüsü veya GIF yerleştirebilirsin
-
----
-
 ### 📄 Kurulum
 
 ```bash
