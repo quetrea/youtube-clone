@@ -1,49 +1,49 @@
 ## 🎬 YouTube Clone
 
-🔗 [GitHub Repository](https://github.com/quetrea/youtube-clone)
+🔗 [View on GitHub](https://github.com/quetrea/youtube-clone)
 
-Modern bir video paylaşım platformu klonu. Gerçek zamanlı video yükleme, akıcı kullanıcı deneyimi ve gelişmiş erişilebilirlik ile inşa edildi. Performans odaklı ve ölçeklenebilir bir mimariye sahiptir.
+A feature-rich video-sharing platform inspired by YouTube. Built for performance, scalability, and user experience. Supports video upload, streaming, account management, and dynamic UI interactions.
 
 ---
 
-### 🚀 Teknoloji Yığını
+### 🚀 Tech Stack Overview
 
-#### ⚙️ Backend
-- **Hono.js** – Minimal ve hızlı bir web framework
-- **tRPC** – Tip güvenli API iletişimi
-- **Drizzle ORM** – TypeScript destekli, hafif ORM
-- **Neon Database** – Serverless PostgreSQL altyapısı
-- **Mux (Node SDK)** – Video yükleme ve streaming altyapısı
+#### 🔧 Backend
+- **Hono.js** – Lightning-fast web framework
+- **tRPC** – End-to-end type-safe APIs
+- **Drizzle ORM** – TypeScript-first ORM for SQL
+- **Neon Database** – Serverless PostgreSQL solution
+- **Mux** – Video upload, transcoding & streaming
+- **SuperJSON** – Rich data serialization
 
 #### 🎨 Frontend
-- **Next.js 15** – React tabanlı, SSR/SSG destekli framework
-- **Tailwind CSS** + **tailwindcss-animate** – Modern UI tasarımı
-- **Radix UI** – Erişilebilir ve ölçeklenebilir UI bileşenleri
-- **Framer Motion** – Animasyonlar için güçlü araç
+- **Next.js 15** – Modern React full-stack framework
+- **React 19** – Latest version of React
+- **Tailwind CSS** + `tailwindcss-animate` – Utility-first CSS with smooth animations
+- **Radix UI** – Accessible and composable components
+- **Framer Motion** – UI animation engine
+- **Lucide Icons** – Clean icon set
+- **cmdk** – Command palette component
+- **UploadThing** – Seamless file upload experience
+- **Vaul** – Drawer/modal interactions
+- **Embla Carousel** – Custom carousels for featured content
+- **Sonner** – Toast notification system
 
-#### 🛠️ Diğer Özellikler
-- **Clerk Auth** – Gelişmiş kimlik doğrulama
-- **UploadThing** – Dosya yükleme sistemi
-- **Upstash Redis + RateLimit** – Rate limiting ve önbellekleme
-- **zod + react-hook-form** – Form yönetimi ve validasyon
-- **React Query** – Veri önbellekleme ve fetch yönetimi
-- **Sonner** – Bildirimler ve toast mesajları
-
----
-
-### 📸 Özellikler
-- ✅ Video yükleme ve izleme (MUX destekli)
-- ✅ Kullanıcı kaydı ve girişi (Clerk)
-- ✅ Yorumlar, toast bildirimler, error-boundary desteği
-- ✅ Dashboard ve kullanıcı kontrol paneli
-- ✅ Mobil uyumlu ve erişilebilir UI
+#### 📦 State & Form Management
+- **React Query** – Server state management
+- **React Hook Form + Zod** – Type-safe form handling and validation
+- **Zustand** – Lightweight global state
 
 ---
 
-### 📄 Kurulum
+### 📂 Scripts
 
 ```bash
-git clone https://github.com/quetrea/youtube-clone.git
-cd youtube-clone
-bun install
+# Start development server
 bun run dev:all
+
+# Start Next.js only
+bun run dev
+
+# Expose webhook listener with ngrok
+bun run dev:webhook
